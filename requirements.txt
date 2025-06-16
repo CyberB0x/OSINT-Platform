@@ -1,0 +1,8 @@
+Django
+requests
+python-whois
+dnspython
+celery
+redis
+python-telegram-bot
+aiohttp
