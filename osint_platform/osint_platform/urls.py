@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard),
     path('scan/email/', views.scan_email),
+    path('scan/clear/', views.clear_history),
     path('scan/domain/', views.scan_domain),
 ]

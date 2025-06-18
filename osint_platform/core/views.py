@@ -20,3 +20,7 @@ def scan_domain(request):
     if domain:
         run_domain_check.delay(domain)
     return redirect('/')
+
+def clear_history(request):
+    OSINTQuery.objects.all().delete()
+    return redirect('/')

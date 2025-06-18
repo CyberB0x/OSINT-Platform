@@ -6,43 +6,43 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-
 <div class="container py-5">
-    <h1 class="mb-4 text-center">🕵️‍♂️ OSINT Platform</h1>
+    <h1 class="text-center mb-5">🕵️ OSINT Platform</h1>
 
+    <!-- FORM SECTION -->
     <div class="row">
         <div class="col-md-6 mb-4">
-            <div class="card shadow">
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">🔍 Проверка Email</h5>
                     <form method="get" action="/scan/email/">
-                        <div class="mb-3">
-                            <input type="email" class="form-control" name="email" placeholder="example@mail.com" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Проверить Email</button>
+                        <input type="email" name="email" class="form-control mb-2" placeholder="example@mail.com" required>
+                        <button type="submit" class="btn btn-primary w-100">Проверить</button>
                     </form>
                 </div>
             </div>
         </div>
-
         <div class="col-md-6 mb-4">
-            <div class="card shadow">
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">🌐 Проверка Доменов (WHOIS)</h5>
+                    <h5 class="card-title">🌐 Проверка Доменов</h5>
                     <form method="get" action="/scan/domain/">
-                        <div class="mb-3">
-                            <input type="text" class="form-control" name="domain" placeholder="example.com" required>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Проверить Домен</button>
+                        <input type="text" name="domain" class="form-control mb-2" placeholder="example.com" required>
+                        <button type="submit" class="btn btn-success w-100">Проверить</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <h4 class="mt-5">📜 История запросов</h4>
+    <!-- HISTORY SECTION -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">📜 История запросов</h4>
+        <a href="/scan/clear/" class="btn btn-sm btn-outline-danger">🗑 Очистить</a>
+    </div>
+
     <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle">
+        <table class="table table-bordered table-hover bg-white">
             <thead class="table-dark">
                 <tr>
                     <th>Тип</th>
@@ -52,22 +52,60 @@
                 </tr>
             </thead>
             <tbody>
-                {% for entry in history %}
+            {% for entry in history %}
                 <tr>
                     <td>{{ entry.query_type }}</td>
                     <td>{{ entry.input_data }}</td>
                     <td>{{ entry.created_at|date:"Y-m-d H:i" }}</td>
-                    <td><pre class="m-0">{{ entry.result|safe }}</pre></td>
+                    <td>
+                        {% if entry.query_type == "email" %}
+                            {% if entry.result.status == "not_found" %}
+                                <span class="badge bg-success">Без утечек</span>
+                            {% elif entry.result.status == "found" %}
+                                <div class="alert alert-danger p-2 mb-0">
+                                    <strong>Утечки найдены:</strong>
+                                    <ul class="mb-0">
+                                        {% for breach in entry.result.breaches %}
+                                            <li>{{ breach.name }} ({{ breach.date }})</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">Ошибка при проверке</span>
+                            {% endif %}
+                        {% elif entry.query_type == "domain" %}
+                            <div class="small">
+                                {% if entry.result.Registrar %}
+                                    <strong>Регистратор:</strong> {{ entry.result.Registrar }}<br>
+                                {% endif %}
+                                {% if entry.result.CreationDate %}
+                                    <strong>Создан:</strong> {{ entry.result.CreationDate }}<br>
+                                {% endif %}
+                                {% if entry.result.ExpirationDate %}
+                                    <strong>Истекает:</strong> {{ entry.result.ExpirationDate }}<br>
+                                {% endif %}
+                                {% if entry.result.NameServers %}
+                                    <strong>DNS:</strong>
+                                    <ul class="mb-0">
+                                        {% for ns in entry.result.NameServers %}
+                                            <li>{{ ns }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <pre class="small">{{ entry.result|safe }}</pre>
+                        {% endif %}
+                    </td>
                 </tr>
-                {% empty %}
+            {% empty %}
                 <tr>
                     <td colspan="4" class="text-center">Нет данных</td>
                 </tr>
-                {% endfor %}
+            {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-
 </body>
 </html>
